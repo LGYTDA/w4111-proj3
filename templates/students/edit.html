@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Student</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const academicLevelSelect = document.getElementById('academic_level');
+            const yearOfStudySelect = document.getElementById('year_of_study');
+
+            // Initial state - hide all options
+            function resetYearOptions() {
+                for (let i = 0; i < yearOfStudySelect.options.length; i++) {
+                    yearOfStudySelect.options[i].style.display = 'none';
+                }
+                // Always show the default "Select Year" option
+                yearOfStudySelect.options[0].style.display = '';
+            }
+
+            // Show relevant options based on academic level
+            function updateYearOptions() {
+                resetYearOptions();
+
+                const level = academicLevelSelect.value;
+
+                if (level === 'Undergraduate') {
+                    // Show undergraduate options (Freshman through Senior)
+                    for (let i = 1; i <= 4; i++) {
+                        yearOfStudySelect.options[i].style.display = '';
+                    }
+                } else if (level === 'Graduate') {
+                    // Show graduate options (First-year and Second-year Graduate)
+                    for (let i = 5; i <= 6; i++) {
+                        yearOfStudySelect.options[i].style.display = '';
+                    }
+                } else if (level === 'PhD') {
+                    // Show all graduate options for PhD students as well
+                    for (let i = 5; i <= 6; i++) {
+                        yearOfStudySelect.options[i].style.display = '';
+                    }
+                }
+            }
+
+            // Update options when academic level changes
+            academicLevelSelect.addEventListener('change', updateYearOptions);
+
+            // Initialize the form with current selection visible
+            if (academicLevelSelect.value) {
+                updateYearOptions();
+                // Make sure the currently selected year is visible regardless of academic level
+                const selectedYearIndex = yearOfStudySelect.selectedIndex;
+                if (selectedYearIndex > 0) {
+                    yearOfStudySelect.options[selectedYearIndex].style.display = '';
+                }
+            } else {
+                resetYearOptions();
+            }
+
+            // Set up initial skill selectors
+            setupAllSkillSelectors();
+
+            // Initialize custom skills section
+            const customSkillsContainer = document.getElementById('custom-skills-container');
+            const addCustomSkillBtn = document.getElementById('add-custom-skill');
+            let customSkillCount = {{ custom_skills|default([])|length + 1 }};
+
+            // Add new custom skill row
+            addCustomSkillBtn.addEventListener('click', function() {
+                const newRow = document.createElement('div');
+                newRow.className = 'custom-skill-row mb-3';
+                newRow.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="new-skill-name-${customSkillCount}" class="form-label">Skill Name</label>
+                            <input type="text" class="form-control new-skill-name" name="new_skill_names[]" id="new-skill-name-${customSkillCount}">
+                        </div>
+                        <div class="col-md-5">
+                            <label for="new-skill-proficiency-${customSkillCount}" class="form-label">Proficiency Level</label>
+                            <select class="form-select new-skill-proficiency" name="new_skill_proficiencies[]" id="new-skill-proficiency-${customSkillCount}">
+                                <option value="">Select Proficiency</option>
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger remove-custom-skill">X</button>
+                        </div>
+                    </div>
+                `;
+                customSkillsContainer.appendChild(newRow);
+                customSkillCount++;
+
+                // Add event listener to the new remove button
+                const removeBtn = newRow.querySelector('.remove-custom-skill');
+                removeBtn.addEventListener('click', function() {
+                    customSkillsContainer.removeChild(newRow);
+                });
+            });
+
+            // Setup remove button for existing custom skills
+            document.querySelectorAll('.remove-custom-skill').forEach(btn => {
+                if (btn.style.display !== 'none') {
+                    btn.addEventListener('click', function() {
+                        this.closest('.custom-skill-row').remove();
+                    });
+                }
+            });
+        });
+
+        // Track selected skills to prevent duplicates
+        const selectedSkills = new Map();
+
+        // Setup a skill selector with validation
+        function setupSkillSelector(selector) {
+            selector.addEventListener('change', function() {
+                const skillId = this.value;
+                const skillName = this.options[this.selectedIndex].text;
+                const skillContainer = this.closest('.skill-item');
+                const proficiencySelect = skillContainer.querySelector('.proficiency-select');
+                const errorMsg = skillContainer.querySelector('.error-message');
+
+                // Clear any existing error message
+                if (errorMsg) {
+                    errorMsg.remove();
+                }
+
+                if (skillId) {
+                    // Check if skill is already selected in another row
+                    const existingSkill = selectedSkills.get(skillName);
+                    if (existingSkill && existingSkill.container !== skillContainer) {
+                        // Skill already selected, show error and reset selection
+                        this.value = '';
+                        proficiencySelect.disabled = true;
+                        proficiencySelect.value = '';
+
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-message';
+                        errorDiv.textContent = `You've already added "${skillName}" with ${existingSkill.proficiency} proficiency. Please remove it first or edit the proficiency level.`;
+                        skillContainer.appendChild(errorDiv);
+
+                        // Highlight the existing skill selection
+                        existingSkill.container.classList.add('highlighted');
+                        setTimeout(() => {
+                            existingSkill.container.classList.remove('highlighted');
+                        }, 3000);
+                    } else {
+                        // Store the skill selection
+                        selectedSkills.set(skillName, {
+                            container: skillContainer,
+                            proficiency: proficiencySelect.value || 'Not selected'
+                        });
+                        proficiencySelect.disabled = false;
+
+                        // Update proficiency when changed
+                        proficiencySelect.onchange = function() {
+                            if (selectedSkills.has(skillName)) {
+                                selectedSkills.get(skillName).proficiency = this.value;
+                            }
+                        };
+                    }
+                } else {
+                    // Skill deselected, remove from tracking and disable proficiency
+                    for (const [key, value] of selectedSkills.entries()) {
+                        if (value.container === skillContainer) {
+                            selectedSkills.delete(key);
+                            break;
+                        }
+                    }
+                    proficiencySelect.disabled = true;
+                    proficiencySelect.value = '';
+                }
+            });
+
+            // Initialize if a value is already selected (for edit)
+            if (selector.value) {
+                const skillName = selector.options[selector.selectedIndex].text;
+                const skillContainer = selector.closest('.skill-item');
+                const proficiencySelect = skillContainer.querySelector('.proficiency-select');
+
+                selectedSkills.set(skillName, {
+                    container: skillContainer,
+                    proficiency: proficiencySelect.value || 'Not selected'
+                });
+
+                proficiencySelect.disabled = false;
+
+                // Update proficiency when changed
+                proficiencySelect.onchange = function() {
+                    if (selectedSkills.has(skillName)) {
+                        selectedSkills.get(skillName).proficiency = this.value;
+                    }
+                };
+            }
+        }
+
+        // Set up all skill selectors
+        function setupAllSkillSelectors() {
+            const skillSelectors = document.querySelectorAll('.skill-selector');
+            skillSelectors.forEach(selector => {
+                setupSkillSelector(selector);
+            });
+        }
+
+        // Add a new skill row
+        function addSkillRow() {
+            const container = document.getElementById('skills-container');
+            const newRow = document.createElement('div');
+            newRow.className = 'skill-item';
+
+            const skillTemplate = document.querySelector('.skill-selector').cloneNode(true);
+            skillTemplate.value = '';
+
+            const proficiencyTemplate = document.querySelector('.proficiency-select').cloneNode(true);
+            proficiencyTemplate.value = '';
+            proficiencyTemplate.disabled = true;
+
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'remove-skill-btn';
+            removeButton.textContent = 'Remove';
+            removeButton.onclick = function() { removeSkillRow(this); };
+
+            newRow.appendChild(skillTemplate);
+            newRow.appendChild(proficiencyTemplate);
+            newRow.appendChild(removeButton);
+
+            container.appendChild(newRow);
+
+            // Setup the new skill selector
+            setupSkillSelector(skillTemplate);
+        }
+
+        // Remove a skill row
+        function removeSkillRow(button) {
+            const skillContainer = button.closest('.skill-item');
+            const skillSelector = skillContainer.querySelector('.skill-selector');
+            const skillName = skillSelector.options[skillSelector.selectedIndex].text;
+
+            // Remove from tracking
+            if (skillSelector.value) {
+                selectedSkills.delete(skillName);
+            }
+
+            // Remove the row
+            skillContainer.remove();
+        }
+
+        // Validate form before submission
+        function validateForm() {
+            // Check if all skills have proficiency levels selected
+            const skillsWithMissingProficiency = [];
+
+            selectedSkills.forEach((value, key) => {
+                if (value.proficiency === 'Not selected' || value.proficiency === '') {
+                    skillsWithMissingProficiency.push(key);
+                }
+            });
+
+            if (skillsWithMissingProficiency.length > 0) {
+                alert(`Please select proficiency levels for the following skills: ${skillsWithMissingProficiency.join(', ')}`);
+                return false;
+            }
+
+            // Validate custom skills
+            const skillNames = new Set();
+            const existingSkills = Array.from(document.querySelectorAll('.skill-selector')).map(select =>
+                select.options[select.selectedIndex]?.text.trim().toLowerCase() || '');
+
+            // Add existing skills to the set
+            existingSkills.forEach(skill => {
+                if (skill && skill !== 'select skill') skillNames.add(skill);
+            });
+
+            // Validate custom skills
+            const customSkillInputs = document.querySelectorAll('.new-skill-name');
+            const customSkillProficiencies = document.querySelectorAll('.new-skill-proficiency');
+
+            let hasError = false;
+
+            for (let i = 0; i < customSkillInputs.length; i++) {
+                const skillNameInput = customSkillInputs[i];
+                const proficiencySelect = customSkillProficiencies[i];
+                const skillName = skillNameInput.value.trim().toLowerCase();
+
+                // Skip empty rows
+                if (!skillName) continue;
+
+                // Check if proficiency is selected
+                if (!proficiencySelect.value) {
+                    alert('Please select a proficiency level for each custom skill');
+                    hasError = true;
+                    break;
+                }
+
+                // Check for duplicates in custom skills or existing skills
+                if (skillNames.has(skillName)) {
+                    alert('Duplicate skill: ' + skillNameInput.value.trim() + '. Each skill must be unique.');
+                    hasError = true;
+                    break;
+                }
+
+                skillNames.add(skillName);
+            }
+
+            if (hasError) {
+                return false;
+            }
+
+            return true;
+        }
+    </script>
+    <style>
+        .skills-container {
+            margin-top: 15px;
+        }
+        .skill-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            position: relative;
+            padding: 10px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .skill-selector {
+            flex: 2;
+        }
+        .proficiency-select {
+            flex: 1;
+        }
+        .add-skill-btn {
+            margin-top: 10px;
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .remove-skill-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .error-message {
+            color: #f44336;
+            font-size: 0.85em;
+            margin-top: 5px;
+            position: absolute;
+            bottom: -15px;
+            left: 10px;
+            width: 100%;
+        }
+        .highlighted {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+        }
+        /* Custom Skills Styling */
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        .card-body {
+            padding: 15px;
+        }
+        .card-header h5 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+        .text-muted {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin-right: -15px;
+            margin-left: -15px;
+        }
+        .col-md-6, .col-md-5, .col-md-1 {
+            position: relative;
+            width: 100%;
+            padding-right: 15px;
+            padding-left: 15px;
+        }
+        .col-md-6 {
+            flex: 0 0 50%;
+            max-width: 50%;
+        }
+        .col-md-5 {
+            flex: 0 0 41.666667%;
+            max-width: 41.666667%;
+        }
+        .col-md-1 {
+            flex: 0 0 8.333333%;
+            max-width: 8.333333%;
+        }
+        .d-flex {
+            display: flex !important;
+        }
+        .align-items-end {
+            align-items: flex-end !important;
+        }
+        .mb-3 {
+            margin-bottom: 1rem !important;
+        }
+        .form-label {
+            margin-bottom: 0.5rem;
+            display: inline-block;
+        }
+        .form-control, .form-select {
+            display: block;
+            width: 100%;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #212529;
+            background-color: #fff;
+            background-clip: padding-box;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .btn {
+            display: inline-block;
+            font-weight: 400;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            user-select: none;
+            border: 1px solid transparent;
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            line-height: 1.5;
+            border-radius: 0.25rem;
+            transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        .btn-danger {
+            color: #fff;
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        .btn-secondary {
+            color: #fff;
+            background-color: #6c757d;
+            border-color: #6c757d;
+        }
+        .mt-4 {
+            margin-top: 1.5rem !important;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Edit Student</h1>
+    <form method="POST" action="{{ url_for('edit_student', student_id=student.student_id) }}" onsubmit="return validateForm()">
+        <div class="form-group">
+            <label for="name">Full Name:</label>
+            <input type="text" id="name" name="name" value="{{ student.name }}" required maxlength="100">
+        </div>
+
+        <div class="form-group">
+            <label for="email_addr">Email:</label>
+            <input type="email" id="email_addr" name="email_addr" value="{{ student.email_addr }}" required maxlength="100">
+        </div>
+
+        <div class="form-group">
+            <label for="academic_level">Academic Level:</label>
+            <select id="academic_level" name="academic_level" required>
+                <option value="">Select Level</option>
+                <option value="Undergraduate" {% if student.academic_level == 'Undergraduate' %}selected{% endif %}>Undergraduate</option>
+                <option value="Graduate" {% if student.academic_level == 'Graduate' %}selected{% endif %}>Graduate</option>
+                <option value="PhD" {% if student.academic_level == 'PhD' %}selected{% endif %}>PhD</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="year_of_study">Year of Study:</label>
+            <select id="year_of_study" name="year_of_study" required>
+                <option value="">Select Year</option>
+                <option value="Freshman" {% if student.year_of_study == 'Freshman' %}selected{% endif %}>Freshman</option>
+                <option value="Sophomore" {% if student.year_of_study == 'Sophomore' %}selected{% endif %}>Sophomore</option>
+                <option value="Junior" {% if student.year_of_study == 'Junior' %}selected{% endif %}>Junior</option>
+                <option value="Senior" {% if student.year_of_study == 'Senior' %}selected{% endif %}>Senior</option>
+                <option value="First-year Graduate" {% if student.year_of_study == 'First-year Graduate' %}selected{% endif %}>First-year Graduate</option>
+                <option value="Second-year Graduate" {% if student.year_of_study == 'Second-year Graduate' %}selected{% endif %}>Second-year Graduate</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="staff_id">Academic Advisor:</label>
+            <select id="staff_id" name="staff_id">
+                {% for professor in professors %}
+                <option value="{{ professor.staff_id }}" {% if professor.staff_id == student.staff_id %}selected{% endif %}>{{ professor.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="dept_id">Department:</label>
+            <select id="dept_id" name="dept_id">
+                <option value="">Select Department</option>
+                {% for dept in departments %}
+                <option value="{{ dept.dept_id }}|{{ dept.university_name }}"
+                        {% if dept.dept_id == student.dept_id and dept.university_name == student.university_name %}selected{% endif %}>
+                    {{ dept.dept_name }} ({{ dept.university_name }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>Skills and Proficiency Levels:</label>
+            <div class="skills-container" id="skills-container">
+                {% for skill in student_skills %}
+                <div class="skill-item">
+                    <select class="skill-selector" name="skill_ids[]">
+                        <option value="">Select Skill</option>
+                        {% for skill_option in skills %}
+                        <option value="{{ skill_option.skill_id }}" {% if skill_option.skill_id == skill.skill_id %}selected{% endif %}>{{ skill_option.skill_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select class="proficiency-select" name="proficiency_levels[]">
+                        <option value="">Select Proficiency</option>
+                        <option value="Beginner" {% if skill.proficiency_level == 'Beginner' %}selected{% endif %}>Beginner</option>
+                        <option value="Intermediate" {% if skill.proficiency_level == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+                        <option value="Advanced" {% if skill.proficiency_level == 'Advanced' %}selected{% endif %}>Advanced</option>
+                    </select>
+                    <button type="button" class="remove-skill-btn" onclick="removeSkillRow(this)">Remove</button>
+                </div>
+                {% endfor %}
+                {% if not student_skills %}
+                <div class="skill-item">
+                    <select class="skill-selector" name="skill_ids[]">
+                        <option value="">Select Skill</option>
+                        {% for skill in skills %}
+                        <option value="{{ skill.skill_id }}">{{ skill.skill_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select class="proficiency-select" name="proficiency_levels[]" disabled>
+                        <option value="">Select Proficiency</option>
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                    </select>
+                    <button type="button" class="remove-skill-btn" onclick="removeSkillRow(this)">Remove</button>
+                </div>
+                {% endif %}
+            </div>
+            <button type="button" class="add-skill-btn" onclick="addSkillRow()">Add Another Skill</button>
+        </div>
+
+        <!-- Add Custom Skills Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>Add Custom Skills</h5>
+                <p class="text-muted">Add skills that don't exist in the library yet</p>
+            </div>
+            <div class="card-body">
+                <div id="custom-skills-container">
+                    {% if custom_skills %}
+                    {% for custom_skill in custom_skills %}
+                    <div class="custom-skill-row mb-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="new-skill-name-{{ loop.index0 }}" class="form-label">Skill Name</label>
+                                <input type="text" class="form-control new-skill-name" name="new_skill_names[]" id="new-skill-name-{{ loop.index0 }}" value="{{ custom_skill.name }}">
+                            </div>
+                            <div class="col-md-5">
+                                <label for="new-skill-proficiency-{{ loop.index0 }}" class="form-label">Proficiency Level</label>
+                                <select class="form-select new-skill-proficiency" name="new_skill_proficiencies[]" id="new-skill-proficiency-{{ loop.index0 }}">
+                                    <option value="">Select Proficiency</option>
+                                    <option value="Beginner" {% if custom_skill.proficiency == 'Beginner' %}selected{% endif %}>Beginner</option>
+                                    <option value="Intermediate" {% if custom_skill.proficiency == 'Intermediate' %}selected{% endif %}>Intermediate</option>
+                                    <option value="Advanced" {% if custom_skill.proficiency == 'Advanced' %}selected{% endif %}>Advanced</option>
+                                </select>
+                            </div>
+                            <div class="col-md-1 d-flex align-items-end">
+                                <button type="button" class="btn btn-danger remove-custom-skill">X</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="custom-skill-row mb-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="new-skill-name-0" class="form-label">Skill Name</label>
+                                <input type="text" class="form-control new-skill-name" name="new_skill_names[]" id="new-skill-name-0">
+                            </div>
+                            <div class="col-md-5">
+                                <label for="new-skill-proficiency-0" class="form-label">Proficiency Level</label>
+                                <select class="form-select new-skill-proficiency" name="new_skill_proficiencies[]" id="new-skill-proficiency-0">
+                                    <option value="">Select Proficiency</option>
+                                    <option value="Beginner">Beginner</option>
+                                    <option value="Intermediate">Intermediate</option>
+                                    <option value="Advanced">Advanced</option>
+                                </select>
+                            </div>
+                            <div class="col-md-1 d-flex align-items-end">
+                                <button type="button" class="btn btn-danger remove-custom-skill" style="display: none;">X</button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                <button type="button" class="btn btn-secondary" id="add-custom-skill">Add Another Custom Skill</button>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">Update Student</button>
+            <a href="{{ url_for('student_profile', student_id=student.student_id) }}" class="btn-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>

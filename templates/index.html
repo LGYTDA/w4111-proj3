@@ -1,29 +1,113 @@
-<html>
-  <style>
-    body{ 
-      font-size: 15pt;
-      font-family: arial;
-    }
-  </style>
+{% extends "layout.html" %}
 
+{% block title %}Home - Academic Research Collaboration Platform{% endblock %}
 
-<body>
-  <h1>Some famous Computer Scientists</h1>
-  <div>{{data}}</div>
+{% block content %}
+<!-- Header -->
+<header>
+  <div class="container">
+    <h1 class="display-4">Welcome to the Academic Research Collaboration Platform</h1>
+    <p class="lead">Connect students and professors for collaborative research projects</p>
+  </div>
+</header>
 
-  <div>
-    {% for n in data %}
-    <div>{{n}}</div>
+<!-- Stats Section -->
+<section class="mb-5">
+  <h2 class="text-center mb-4">Platform Statistics</h2>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card stat-card">
+        <div class="stat-number">{{ count_students }}</div>
+        <h3>Students</h3>
+        <p>Registered on the platform</p>
+        <a href="/students" class="btn btn-outline-primary">View All Students</a>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card stat-card">
+        <div class="stat-number">{{ count_professors }}</div>
+        <h3>Professors</h3>
+        <p>Leading research projects</p>
+        <a href="/professors" class="btn btn-outline-primary">View All Professors</a>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card stat-card">
+        <div class="stat-number">{{ count_projects }}</div>
+        <h3>Projects</h3>
+        <p>Active and completed</p>
+        <a href="/projects" class="btn btn-outline-primary">View All Projects</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Recent Projects Section -->
+<section class="mb-5">
+  <h2 class="mb-4">Recent Projects</h2>
+  {% if recent_projects %}
+  <div class="row">
+    {% for project in recent_projects %}
+    <div class="col-md-6 mb-4">
+      <div class="card h-100">
+        <div class="card-body">
+          <h5 class="card-title">{{ project.title }}</h5>
+          <h6 class="card-subtitle mb-2 text-muted">Led by Prof. {{ project.professor_name }}</h6>
+          <p class="card-text">
+            <span class="badge {% if project.status == 'Active' %}bg-success{% elif project.status == 'Completed' %}bg-secondary{% else %}bg-warning{% endif %}">
+              {{ project.status }}
+            </span>
+          </p>
+          <p class="card-text">
+            <small class="text-muted">Started: {{ project.start_date }}</small>
+          </p>
+          <a href="/projects/{{ project.project_id }}" class="btn btn-primary">View Details</a>
+        </div>
+      </div>
+    </div>
     {% endfor %}
   </div>
+  <div class="text-center">
+    <a href="/projects" class="btn btn-outline-primary">View All Projects</a>
+  </div>
+  {% else %}
+  <div class="alert alert-info">No projects available at the moment.</div>
+  {% endif %}
+</section>
 
-<p><a href="another">Go to the other page</a></p>
-
-<form method="POST" action="/add">
-<p>Name of new computer scientist: <input type="text" name="name"> <input type="submit" value="Add"></p>
-</form>
-
-</body>
-
-
-</html>
+<!-- Quick Actions -->
+<section class="mb-5">
+  <h2 class="mb-4">Quick Actions</h2>
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Students</h5>
+          <p class="card-text">Register or find student profiles</p>
+          <a href="/students/add" class="btn btn-success me-2">Register</a>
+          <a href="/students" class="btn btn-primary">Browse</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Professors</h5>
+          <p class="card-text">Register or find professor profiles</p>
+          <a href="/professors/add" class="btn btn-success me-2">Register</a>
+          <a href="/professors" class="btn btn-primary">Browse</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Projects</h5>
+          <p class="card-text">Create or browse research projects</p>
+          <a href="/projects" class="btn btn-primary">Browse</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Professor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>Edit Professor</h1>
+    <form method="POST" action="{{ url_for('edit_professor', staff_id=professor.staff_id) }}">
+        <div class="form-group">
+            <label for="staff_id">Staff ID:</label>
+            <input type="text" id="staff_id" value="{{ professor.staff_id }}" disabled>
+            <!-- Hidden field to ensure staff_id is included in the form data -->
+            <input type="hidden" name="staff_id" value="{{ professor.staff_id }}">
+        </div>
+
+        <div class="form-group">
+            <label for="name">Full Name:</label>
+            <input type="text" id="name" name="name" value="{{ professor.name }}" required maxlength="100">
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" value="{{ professor.email }}" required maxlength="100">
+        </div>
+
+        <div class="form-group">
+            <label for="research_focus">Research Focus:</label>
+            <textarea id="research_focus" name="research_focus" rows="4">{{ professor.research_focus }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="dept_id">Department:</label>
+            <select id="dept_id" name="dept_id">
+
+                {% for dept in departments %}
+                <option value="{{ dept.dept_id }}|{{ dept.university_name }}"
+                        {% if current_dept_value == dept.dept_id + '|' + dept.university_name %}selected{% endif %}>
+                {{ dept.dept_name }} ({{ dept.university_name }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">Save Changes</button>
+            <a href="{{ url_for('professor_profile', staff_id=professor.staff_id) }}" class="btn-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>

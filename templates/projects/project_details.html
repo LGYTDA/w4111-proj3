@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Details - {{ project.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<a href="{{ url_for('all_projects') }}" class="back-link">← Back to Projects</a>
+
+<div class="section">
+    <h1>{{ project.title }}</h1>
+    <div class="action-buttons">
+        <a href="{{ url_for('edit_project', project_id=project.project_id) }}" class="btn-edit">Edit Project</a>
+    </div>
+    <div class="basic-info">
+        <p>Project ID: {{ project.project_id }}</p>
+        <p>Abstract: {{ project.abstract }}</p>
+        <p>Status: <span class="status-chip">{{ project.status }}</span></p>
+        <p>Start Date: {{ project.start_date }}</p>
+        <p>Project Lead: <a href="{{ url_for('professor_profile', staff_id=project.staff_id) }}">{{ project.professor_name }}</a></p>
+    </div>
+</div>
+
+{% if skills %}
+<div class="section">
+    <h2>Required Skills</h2>
+    <div class="skill-list">
+        {% for skill in skills %}
+        <div class="skill-item">
+            {{ skill.skill_name }} ({{ skill.proficiency_level }})
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<h2>Applicants</h2>
+{% if applied_students %}
+<div class="section">
+
+    <table>
+        <thead>
+        <tr>
+            <th>Student ID</th>
+            <th>Name</th>
+            <th>Academic Level</th>
+            <th>Year of Study</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for student in applied_students %}
+        <tr>
+            <td>{{ student.student_id }}</td>
+            <td><a href="{{ url_for('student_profile', student_id=student.student_id) }}">{{ student.name }}</a></td>
+            <td>{{ student.academic_level }}</td>
+            <td>{{ student.year_of_study }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="section alert-message">
+    <p>No students have applied to this project yet.</p>
+</div>
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const statusChips = document.querySelectorAll('.status-chip');
+        statusChips.forEach(chip => {
+            const status = chip.textContent.toLowerCase().trim();
+            if (status === 'open') {
+                chip.classList.add('status-open');
+            } else if (status === 'In progress') {
+                chip.classList.add('status-in-progress');
+            } else if (status === 'pending') {
+                chip.classList.add('status-Completed');
+            }
+        });
+    });
+</script>
+</body>
+</html>

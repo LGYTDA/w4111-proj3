@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply for Project</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>Apply for Project: {{ project.title }}</h1>
+
+    <div class="info-card">
+        <h3>Project Details</h3>
+        <div class="detail-item">
+            <span class="label">Title:</span>
+            <span class="value">{{ project.title }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="label">Led by:</span>
+            <span class="value">{{ project.professor_name }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="label">Abstract:</span>
+            <span class="value">{{ project.abstract }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="label">Status:</span>
+            <span class="value">{{ project.status }}</span>
+        </div>
+        <div class="detail-item">
+            <span class="label">Start Date:</span>
+            <span class="value">{{ project.start_date }}</span>
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('apply_to_project', project_id=project.project_id) }}">
+        <h3>Submit Application</h3>
+
+        <div class="form-group">
+            <label for="student_id">Select Student:</label>
+            <select id="student_id" name="student_id" required>
+                <option value="">-- Select Student --</option>
+                {% for student in students %}
+                <option value="{{ student.student_id }}">{{ student.name }} ({{ student.student_id }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">Submit Application</button>
+            <a href="{{ url_for('view_project', project_id=project.project_id) }}" class="btn-cancel">Back to Project</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>

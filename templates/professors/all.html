@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>All Professors</h1>
+
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search professors...">
+    </div>
+
+    {% if professors %}
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Research Focus</th>
+            <th>Active Projects</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody id="professorsTable">
+        {% for professor in professors %}
+        <tr>
+            <td>{{ professor.staff_id }}</td>
+            <td>{{ professor.name }}</td>
+            <td>{{ professor.email }}</td>
+            <td>{{ professor.research_focus or 'Not specified' }}</td>
+            <td>{{ professor.project_count }}</td>
+            <td>
+                <a href="/professors/{{ professor.staff_id }}" class="btn">View</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <h3>No professors found</h3>
+        <p>There are no professors in the database yet.</p>
+    </div>
+    {% endif %}
+
+    <div class="controls">
+        <a href="/" class="btn back-btn">Back to Home</a>
+    </div>
+</div>
+
+<script>
+    // Simple search functionality
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        const searchValue = this.value.toLowerCase();
+        const table = document.getElementById('professorsTable');
+        const rows = table.getElementsByTagName('tr');
+
+        for (let i = 0; i < rows.length; i++) {
+            let found = false;
+            const cells = rows[i].getElementsByTagName('td');
+
+            for (let j = 0; j < cells.length; j++) {
+                const cellText = cells[j].textContent || cells[j].innerText;
+
+                if (cellText.toLowerCase().indexOf(searchValue) > -1) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found) {
+                rows[i].style.display = '';
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile - {{ student.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<a href="/students" class="back-link">← Back to Students</a>
+
+<div class="section">
+    <h1>{{ student.name }}</h1>
+    <div class="action-buttons">
+        <a href="{{ url_for('edit_student', student_id=student.student_id) }}" class="btn-cancel">Edit Profile</a>
+    </div>
+    <div class="basic-info">
+        <p>Student ID: {{ student.student_id }}</p>
+        <p>Email: {{ student.email }}</p>
+        <p>Academic Level: {{ student.academic_level }}</p>
+        <p>Year of Study: {{ student.year_of_study }}</p>
+        {% if student.advisor_name %}
+        <p>Academic Advisor: {{ student.advisor_name }}</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if departments %}
+<div class="section">
+    <h2>Department</h2>
+    {% for dept in departments %}
+    <p>{{ dept.dept_name }} - {{ dept.university_name }}</p>
+    {% endfor %}
+</div>
+{% endif %}
+
+<div class="section">
+    <h2>Skills</h2>
+    <div class="skills-list">
+        {% if skills %}
+        {% for skill in skills %}
+        <span class="skill">{{ skill.skill_name }} ({{ skill.proficiency_level }})</span>
+        {% endfor %}
+        {% else %}
+        <p>No skills have been added.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% if applied_projects %}
+<div class="section">
+    <h2>Projects Applied To</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Project</th>
+            <th>Professor</th>
+            <th>Start Date</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for project in applied_projects %}
+        <tr>
+            <td><a href="/projects/{{ project.project_id }}">{{ project.title }}</a></td>
+            <td>{{ project.professor_name }}</td>
+            <td>{{ project.start_date }}</td>
+            <td><span class="status-chip">{{ project.status }}</span></td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+</body>
+</html>

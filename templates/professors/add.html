@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Professor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+<div class="container">
+    <h1>Add New Professor</h1>
+    <form method="POST" action="{{ url_for('add_professor') }}">
+        <!-- Staff ID field removed as it will be auto-generated -->
+
+        <div class="form-group">
+            <label for="name">Full Name:</label>
+            <input type="text" id="name" name="name" required maxlength="100">
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required maxlength="100">
+        </div>
+
+        <div class="form-group">
+            <label for="research_focus">Research Focus:</label>
+            <textarea id="research_focus" name="research_focus" rows="4"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="dept_id">Department:</label>
+            <select id="dept_id" name="dept_id">
+                {% for dept in departments %}
+                <option value="{{ dept.dept_id }}|{{ dept.university_name }}">
+                    {{ dept.dept_name }} ({{ dept.university_name }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">Add Professor</button>
+            <a href="{{ url_for('all_professors') }}" class="btn-cancel">Cancel</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>
