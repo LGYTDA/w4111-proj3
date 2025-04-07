@@ -13,7 +13,7 @@ import time
   # accessible as a variable in index.html:
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response, url_for
+from flask import Flask, request, render_template, g, redirect, Response, url_for, session
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -136,7 +136,31 @@ def get_all_universities():
 # see for routing: https://flask.palletsprojects.com/en/1.1.x/quickstart/#routing
 # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
 #
+
+#CHOOSING AND CHANGING USER
 @app.route('/')
+def entry():
+    # Clear any existing role
+    if 'role' in session:
+        session.pop('role')
+    return render_template('entry.html')
+@app.route('/set_role', methods=['POST'])
+def set_role():
+    role = request.form.get('role')
+    if role in ['student', 'professor']:
+        session['role'] = role
+    return redirect(url_for('index'))
+@app.route('/change_role')
+def change_role():
+    # Clear the current role
+    if 'role' in session:
+        session.pop('role')
+
+    # Redirect back to the role selection page
+    return redirect(url_for('entry'))
+
+#PAGES
+@app.route('/welcome')
 def index():
 	"""
 	request is a special object that Flask provides to access web request information:
@@ -1364,29 +1388,7 @@ def apply_to_project(project_id):
 # Notice that the function name is another() rather than index()
 # The functions for each app.route need to have different names
 #
-@app.route('/another')
-def another():
-	return render_template("another.html")
 
-
-# Example of adding new data to the database
-@app.route('/add', methods=['POST'])
-def add():
-	# accessing form inputs from user
-	name = request.form['name']
-
-	# passing params in for each variable into query
-	params = {}
-	params["new_name"] = name
-	g.conn.execute(text('INSERT INTO test(name) VALUES (:new_name)'), params)
-	#g.conn.commit()
-	return redirect('/')
-
-
-@app.route('/login')
-def login():
-	abort(401)
-	this_is_never_executed()
 
 
 if __name__ == "__main__":

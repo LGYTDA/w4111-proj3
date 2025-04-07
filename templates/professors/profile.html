@@ -11,9 +11,12 @@
 
 <div class="section">
     <h1>{{ professor.name }}</h1>
+    {% if session.get('role') == 'professor' %}
     <div class="action-buttons">
         <a href="{{ url_for('edit_professor', staff_id=professor.staff_id) }}" class="btn-cancel">Edit Profile</a>
     </div>
+    {% endif %}
+
     <div class="basic-info">
         <p>Staff ID: {{ professor.staff_id }}</p>
         <p>Email: {{ professor.email }}</p>
@@ -66,9 +69,12 @@
         This professor is not leading any projects currently.
     </div>
     {% endif %}
+    {% if session.get('role') == 'professor' %}
     <div class="action-buttons">
         <a href="{{ url_for('add_project', staff_id=professor.staff_id) }}" class="btn-submit">Create New Project</a>
     </div>
+    {% endif %}
+
 </div>
 
 <div class="section">

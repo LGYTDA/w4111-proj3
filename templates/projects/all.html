@@ -32,11 +32,14 @@
             <td>{{ project.applicant_count }}</td>
             <td>
                 <a href="/projects/{{ project.project_id }}" class="btn" style="display: inline-block; margin-right: 5px;">View</a>
+                {% if session.get('role') == 'student' %}
                 {% if project.status.lower() == 'completed' %}
                 <a href="#" class="btn-disabled" style="display: inline-block;" onclick="showCompletedMessage()">Apply</a>
                 {% else %}
                 <a href="/projects/{{ project.project_id }}/apply" class="btn-submit" style="display: inline-block;">Apply</a>
                 {% endif %}
+                {% endif %}
+
             </td>
         </tr>
         {% endfor %}
@@ -49,7 +52,7 @@
     </div>
     {% endif %}
 
-   
+
 </div>
 
 <!-- Modal for completed project message -->

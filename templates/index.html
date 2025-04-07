@@ -76,6 +76,7 @@
 </section>
 
 <!-- Quick Actions -->
+<!-- Quick Actions -->
 <section class="mb-5">
   <h2 class="mb-4">Quick Actions</h2>
   <div class="row">
@@ -84,7 +85,9 @@
         <div class="card-body">
           <h5 class="card-title">Students</h5>
           <p class="card-text">Register or find student profiles</p>
+          {% if not session.get('role') or session.get('role') != 'professor' %}
           <a href="/students/add" class="btn btn-success me-2">Register</a>
+          {% endif %}
           <a href="/students" class="btn btn-primary">Browse</a>
         </div>
       </div>
@@ -94,7 +97,9 @@
         <div class="card-body">
           <h5 class="card-title">Professors</h5>
           <p class="card-text">Register or find professor profiles</p>
+          {% if not session.get('role') or session.get('role') != 'student' %}
           <a href="/professors/add" class="btn btn-success me-2">Register</a>
+          {% endif %}
           <a href="/professors" class="btn btn-primary">Browse</a>
         </div>
       </div>
@@ -104,10 +109,13 @@
         <div class="card-body">
           <h5 class="card-title">Projects</h5>
           <p class="card-text">Create or browse research projects</p>
+          {% if session.get('role') == 'professor' %}
+          <a href="/projects/add" class="btn btn-success me-2">Create Project</a>
+          {% endif %}
           <a href="/projects" class="btn btn-primary">Browse</a>
         </div>
       </div>
     </div>
-  </div>
+
 </section>
 {% endblock %}

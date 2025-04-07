@@ -11,9 +11,12 @@
 
 <div class="section">
     <h1>{{ project.title }}</h1>
+    {% if session.get('role') == 'professor' %}
     <div class="action-buttons">
         <a href="{{ url_for('edit_project', project_id=project.project_id) }}" class="btn-edit">Edit Project</a>
     </div>
+    {% endif %}
+
     <div class="basic-info">
         <p>Project ID: {{ project.project_id }}</p>
         <p>Abstract: {{ project.abstract }}</p>
