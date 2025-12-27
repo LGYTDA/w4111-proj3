@@ -41,6 +41,11 @@ app.secret_key = 'academic_research_platform_key'  # Secret key for sessions
 #engine = create_engine(DATABASEURI)
 
 #testing code , uncomment line above after fixing this
+
+DATABASEURI = os.environ.get("DATABASE_URL")
+if not DATABASEURI:
+    raise RuntimeError("DATABASE_URL is not set")
+
 engine = create_engine(
     DATABASEURI,
     poolclass=NullPool,
@@ -1421,6 +1426,7 @@ if __name__ == "__main__":
 		app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
 		
 		run()
+
 
 
 
