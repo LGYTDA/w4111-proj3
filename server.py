@@ -41,7 +41,15 @@ DATABASEURI = f"postgresql://lgy2104:15Sihamrocks@34.148.223.31/proj1part2"
 #
 # This line creates a database engine that knows how to connect to the URI above.
 #
-engine = create_engine(DATABASEURI)
+
+#engine = create_engine(DATABASEURI)
+
+#testing code , uncomment line above after fixing this
+engine = create_engine(
+    DATABASEURI,
+    poolclass=NullPool,
+    connect_args={"connect_timeout": 5},
+)
 
 @app.before_request
 def before_request():
@@ -1417,4 +1425,5 @@ if __name__ == "__main__":
 		app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
 		
 		run()
+
 
