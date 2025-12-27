@@ -32,10 +32,6 @@ app.secret_key = 'academic_research_platform_key'  # Secret key for sessions
 #     DATABASEURI = "postgresql://zy2431:123123@34.148.223.31/proj1part2"
 #
 # Modify these with your own credentials you received from TA!
-DATABASE_USERNAME = "lgy2104"
-DATABASE_PASSWRD = "15Sihamrocks"
-DATABASE_HOST = "34.148.223.31"
-DATABASEURI = f"postgresql://lgy2104:15Sihamrocks@34.148.223.31/proj1part2"
 
 
 #
@@ -1425,5 +1421,6 @@ if __name__ == "__main__":
 		app.run(host=HOST, port=PORT, debug=debug, threaded=threaded)
 		
 		run()
+
 
 
